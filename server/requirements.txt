@@ -1,19 +1,38 @@
-flask
-flask-cors
-flask-pymongo
-python-dotenv
-requests
-pymongo
-python-jose
-passlib
-gunicorn
-pillow
-boto3
-instagram-api
-# amazon-paapi5-python-sdk
-pycryptodome
-flask-jwt-extended
-mongoengine
-dnspython
-Werkzeug
-google-generativeai
+flask==2.3.3
+flask-cors==4.0.0
+flask-pymongo==2.3.0
+python-dotenv==1.0.0
+requests==2.31.0
+pymongo==4.5.0
+python-jose==3.3.0
+passlib==1.7.4
+gunicorn==21.2.0
+pillow==10.0.1
+boto3==1.28.85
+pycryptodome==3.19.0
+flask-jwt-extended==4.5.3
+mongoengine==0.27.0
+dnspython==2.4.2
+Werkzeug==2.3.7
+google-generativeai==0.3.2
+
+# flask
+# flask-cors
+# flask-pymongo
+# python-dotenv
+# requests
+# pymongo
+# python-jose
+# passlib
+# gunicorn
+# pillow
+# boto3
+# instagram-api
+# # amazon-paapi5-python-sdk
+# pycryptodome
+# flask-jwt-extended
+# mongoengine
+# dnspython
+# Werkzeug
+# google-generativeai
+# cloudinary

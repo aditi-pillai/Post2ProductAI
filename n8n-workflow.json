@@ -1,0 +1,268 @@
+{
+  "name": "Instagram to Shopify Product Publisher",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "instagram-to-shopify",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "instagram-to-shopify"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "media-type-check",
+              "leftValue": "={{ $json.media_type }}",
+              "rightValue": "IMAGE",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "media-type-filter",
+      "name": "Filter Media Type",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Validate webhook signature\nconst crypto = require('crypto');\nconst secret = $vars.WEBHOOK_SECRET || 'change_me_in_production';\nconst signature = $input.first().headers['x-post2product-signature'];\nconst payload = JSON.stringify($input.first().body);\n\nconst expectedSignature = crypto\n  .createHmac('sha256', secret)\n  .update(payload)\n  .digest('hex');\n\nif (!signature || signature !== expectedSignature) {\n  throw new Error('Invalid webhook signature');\n}\n\nreturn $input.all();"
+      },
+      "id": "signature-validation",
+      "name": "Validate Signature",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [240, 180]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "title",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "body_html",
+              "name": "body_html",
+              "value": "={{ $json.description }}",
+              "type": "string"
+            },
+            {
+              "id": "vendor",
+              "name": "vendor",
+              "value": "={{ $json.vendor || 'Post2Product' }}",
+              "type": "string"
+            },
+            {
+              "id": "product_type",
+              "name": "product_type",
+              "value": "={{ $json.product_type || 'General' }}",
+              "type": "string"
+            },
+            {
+              "id": "tags",
+              "name": "tags",
+              "value": "={{ $json.tags ? $json.tags.join(',') : '' }}",
+              "type": "string"
+            },
+            {
+              "id": "variants",
+              "name": "variants",
+              "value": "=[{\n  \"option1\": \"Default Title\",\n  \"price\": \"{{ $json.price }}\",\n  \"sku\": \"{{ $json.sku || '' }}\",\n  \"inventory_management\": \"shopify\",\n  \"inventory_quantity\": {{ $json.inventory_quantity || 0 }}\n}]",
+              "type": "object"
+            },
+            {
+              "id": "images",
+              "name": "images",
+              "value": "={{ $json.images.map(img => ({ src: img })) }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "map-product-data",
+      "name": "Map Product Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "resource": "product",
+        "operation": "create",
+        "title": "={{ $json.title }}",
+        "bodyHtml": "={{ $json.body_html }}",
+        "vendor": "={{ $json.vendor }}",
+        "productType": "={{ $json.product_type }}",
+        "tags": "={{ $json.tags }}",
+        "variants": "={{ $json.variants }}",
+        "images": "={{ $json.images }}",
+        "status": "draft",
+        "options": {}
+      },
+      "id": "create-shopify-product",
+      "name": "Create Shopify Product",
+      "type": "n8n-nodes-base.shopify",
+      "typeVersion": 1,
+      "position": [900, 300],
+      "credentials": {
+        "shopifyApi": {
+          "id": "shopify-credentials",
+          "name": "Shopify API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"message\": \"Product created successfully in Shopify\",\n  \"shopify_product_id\": {{ $json.id }},\n  \"product_id\": \"{{ $('Webhook Trigger').first().json.id }}\",\n  \"status\": \"published\"\n}",
+        "options": {}
+      },
+      "id": "success-response",
+      "name": "Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"message\": \"Only image posts are supported for product creation\",\n  \"product_id\": \"{{ $('Webhook Trigger').first().json.id }}\",\n  \"status\": \"skipped\"\n}",
+        "options": {}
+      },
+      "id": "skip-video-response",
+      "name": "Skip Video Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [680, 480]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"message\": \"{{ $json.message }}\",\n  \"product_id\": \"{{ $('Webhook Trigger').first().json.id }}\",\n  \"status\": \"failed\",\n  \"error\": \"{{ $json.message }}\"\n}",
+        "options": {}
+      },
+      "id": "error-response",
+      "name": "Error Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1120, 480]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"message\": \"Invalid webhook signature\",\n  \"product_id\": \"{{ $('Webhook Trigger').first().json.id }}\",\n  \"status\": \"unauthorized\"\n}",
+        "options": {}
+      },
+      "id": "unauthorized-response",
+      "name": "Unauthorized Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [460, 180]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Validate Signature",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Signature": {
+      "main": [
+        [
+          {
+            "node": "Filter Media Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Media Type": {
+      "main": [
+        [
+          {
+            "node": "Map Product Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Skip Video Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map Product Data": {
+      "main": [
+        [
+          {
+            "node": "Create Shopify Product",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Shopify Product": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "1"
+}

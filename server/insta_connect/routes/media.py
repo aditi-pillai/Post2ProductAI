@@ -4,6 +4,7 @@ import requests
 from models.user import User
 from models.media import Media
 from flask_jwt_extended import jwt_required
+from services.shopify_service import ShopifyWebhookService
 
 API_VERSION = "v20.0"
 
@@ -48,6 +49,17 @@ def get_instagram_media():
                 media_doc.save()
                 user.update(push__media=media_doc)
                 new_media_count += 1
+
+                # Trigger n8n webhook for image posts only
+                try:
+                    if media_doc.media_type == 'IMAGE' and media_doc.media_url:
+                        shopify_service = ShopifyWebhookService()
+                        # Only trigger if webhook URL is configured
+                        if shopify_service.n8n_webhook_url:
+                            shopify_service.push_media_to_n8n(media_doc, user)
+                except Exception:
+                    # Do not fail the whole request if webhook fails; continue
+                    pass
 
         return jsonify({
             "media": media_data,

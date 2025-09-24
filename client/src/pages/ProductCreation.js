@@ -14,8 +14,13 @@ function ProductCreation() {
     category: '',
     condition: 'New',
     quantity: '1',
-    images: []
+    images: [],
+    tags: [],
+    vendor: '',
+    sku: ''
   });
+  const [shopifyStatus, setShopifyStatus] = useState(null);
+  const [isPublishing, setIsPublishing] = useState(false);
 
   // Get product ID from URL query params
   const queryParams = new URLSearchParams(location.search);

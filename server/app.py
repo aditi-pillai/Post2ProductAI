@@ -27,6 +27,7 @@ from routes.auth import auth_bp
 from routes.instagram import instagram_bp
 from routes.amazon import amazon_bp
 from routes.analytics import analytics_bp
+from routes.shopify import shopify_bp
 from insta_connect.routes.instagram_auth import instagram_auth
 from insta_connect.routes.media import media_bp
 from routes.chatbot import chatbot_bp
@@ -36,6 +37,7 @@ app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(instagram_bp, url_prefix='/api/instagram')
 app.register_blueprint(amazon_bp, url_prefix='/api/amazon')
 app.register_blueprint(analytics_bp, url_prefix='/api/analytics')
+app.register_blueprint(shopify_bp, url_prefix='/api/shopify')
 app.register_blueprint(instagram_auth, url_prefix='/api/insta-connect/instagram')
 app.register_blueprint(media_bp, url_prefix='/api/insta-connect/media')
 app.register_blueprint(chatbot_bp)

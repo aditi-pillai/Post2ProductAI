@@ -185,3 +185,10 @@ major-project.ipynb
 Stylumia Data.csv
 Various Tokens and API_keys.txt
 .ipynb_checkpoints
+QUICK_START_GUIDE.md
+SHOPIFY_INTEGRATION_README.md
+SHOPIFY_SETUP_GUIDE.md
+start_client.bat
+start_server.ps1
+test_shopify_integration.py
+all_apis.txt

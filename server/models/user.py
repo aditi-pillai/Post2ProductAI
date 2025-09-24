@@ -17,6 +17,11 @@ class User(Document):
     amazon_seller_id = StringField()
     amazon_access_key = StringField()
     amazon_secret_key = StringField()
+    
+    # Shopify integration fields
+    shopify_connected = BooleanField(default=False)
+    shopify_shop_domain = StringField()
+    shopify_access_token = StringField()
 
     meta = {
         'collection': 'users',

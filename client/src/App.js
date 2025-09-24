@@ -14,6 +14,7 @@ import Register from './pages/Register';
 import InstagramAuth from './components/InstaConnect/InstagramAuth';
 import MediaGallery from './components/InstaConnect/MediaGallery';
 import InstagramCallback from './pages/InstagramCallback';
+import ShopifySettings from './pages/ShopifySettings';
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
                 <Route path="/instagram/callback" element={<InstagramCallback />} />
                 <Route path="/analytics" element={<Analytics />} />
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/shopify" element={<ShopifySettings />} />
               </Route>
             </Route>
 
